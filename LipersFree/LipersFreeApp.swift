@@ -9,9 +9,23 @@ import SwiftUI
 
 @main
 struct LipersFreeApp: App {
+    @State private var splashFinished = false
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ZStack {
+                if splashFinished {
+                    ContentView()
+                        .transition(.opacity)
+                } else {
+                    SplashView {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            splashFinished = true
+                        }
+                    }
+                    .transition(.opacity)
+                }
+            }
         }
     }
 }

@@ -15,8 +15,13 @@ struct Wallpaper: Codable, Identifiable {
     let title: String
     let preview_image: String
     let file_url: String
-    let live_image_url: String?
-    let live_video_url: String?
     let is_premium: Bool
-    let category: WallpaperCategory?
+    // Decoded from /wallpapers and /wallpapers/{id}; injected from HomeSection for /home.
+    var category: WallpaperCategory?
+
+    func with(category: WallpaperCategory) -> Wallpaper {
+        var copy = self
+        copy.category = category
+        return copy
+    }
 }

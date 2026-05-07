@@ -110,7 +110,10 @@ struct ExploreView: View {
             LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(viewModel.wallpapers) { wallpaper in
                     NavigationLink {
-                        WallpaperDetailView(wallpaper: wallpaper)
+                        WallpaperDetailView(
+                            categoryId: wallpaper.category?.id ?? viewModel.selectedCategoryId ?? 0,
+                            wallpaperId: wallpaper.id
+                        )
                     } label: {
                         WallpaperCardView(wallpaper: wallpaper, width: nil, height: 270)
                     }

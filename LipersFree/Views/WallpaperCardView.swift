@@ -74,10 +74,7 @@ struct WallpaperCardView_Previews: PreviewProvider {
                 title: "Abstract 1",
                 preview_image: "https://picsum.photos/400/700",
                 file_url: "https://example.com/video.mp4",
-                live_image_url: "https://example.com/live.jpg",
-                live_video_url: "https://example.com/live.mov",
-                is_premium: true,
-                category: nil
+                is_premium: true
             ),
             width: 175,
             height: 270

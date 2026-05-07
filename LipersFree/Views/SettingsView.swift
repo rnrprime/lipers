@@ -4,6 +4,8 @@
 //
 
 import SwiftUI
+import StoreKit
+import UIKit
 
 private enum WallpaperTarget: String, CaseIterable {
     case home = "Home"
@@ -12,7 +14,13 @@ private enum WallpaperTarget: String, CaseIterable {
 }
 
 struct SettingsView: View {
+    @Environment(\.openURL) private var openURL
     @State private var wallpaperTarget: WallpaperTarget = .both
+    @State private var shareItems: [Any] = []
+    @State private var showShareSheet = false
+
+    private let appStoreURL = URL(string: "https://apps.apple.com/app/id1181075088")!
+    private let writeReviewURL = URL(string: "https://apps.apple.com/app/id1181075088?action=write-review")!
 
     var body: some View {
         ZStack {
@@ -33,6 +41,9 @@ struct SettingsView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showShareSheet) {
+            ActivityViewController(activityItems: shareItems)
+        }
     }
 
     // MARK: - Header
@@ -160,9 +171,26 @@ struct SettingsView: View {
 
     private var aboutSection: some View {
         section(title: "About") {
-            row(icon: "star.fill", iconColor: Color(hex: "F59E0B"), title: "Rate on App Store")
+            row(
+                icon: "star.bubble.fill",
+                iconColor: Color(hex: "F59E0B"),
+                title: "Leave an In-App Review",
+                action: requestInAppReview
+            )
             divider
-            row(icon: "square.and.arrow.up", iconColor: AppThemeService.accent, title: "Share App")
+            row(
+                icon: "star.fill",
+                iconColor: Color(hex: "F59E0B"),
+                title: "Rate on App Store",
+                action: openAppStoreReviewPage
+            )
+            divider
+            row(
+                icon: "square.and.arrow.up",
+                iconColor: AppThemeService.accent,
+                title: "Share App",
+                action: shareApp
+            )
             divider
             row(icon: "lock.shield.fill", iconColor: Color(hex: "10B981"), title: "Privacy Policy")
             divider
@@ -213,8 +241,13 @@ struct SettingsView: View {
         }
     }
 
-    private func row(icon: String, iconColor: Color, title: String) -> some View {
-        Button {} label: {
+    private func row(
+        icon: String,
+        iconColor: Color,
+        title: String,
+        action: @escaping () -> Void = {}
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 14) {
                 iconCell(systemName: icon, color: iconColor)
 
@@ -248,6 +281,28 @@ struct SettingsView: View {
             .frame(height: 0.5)
             .padding(.leading, 60)
     }
+
+    private func requestInAppReview() {
+        guard let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else {
+            return
+        }
+
+        SKStoreReviewController.requestReview(in: scene)
+    }
+
+    private func openAppStoreReviewPage() {
+        openURL(writeReviewURL)
+    }
+
+    private func shareApp() {
+        shareItems = [
+            "Check out Lipers Lite Live Wallpapers on the App Store.",
+            appStoreURL
+        ]
+        showShareSheet = true
+    }
 }
 
 struct SettingsView_Previews: PreviewProvider {
@@ -257,4 +312,14 @@ struct SettingsView_Previews: PreviewProvider {
         }
         .preferredColorScheme(.dark)
     }
+}
+
+private struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

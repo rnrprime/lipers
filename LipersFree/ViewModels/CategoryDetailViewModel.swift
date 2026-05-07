@@ -2,8 +2,6 @@
 //  CategoryDetailViewModel.swift
 //  LipersFree
 //
-//  Created by Codex on 2/4/26.
-//
 
 import Combine
 import Foundation
@@ -18,15 +16,17 @@ final class CategoryDetailViewModel: ObservableObject {
 
     private let apiService: APIService
     private var activeCategoryId: Int?
+    private var activeCategoryName: String = ""
 
     init(apiService: APIService? = nil) {
         self.apiService = apiService ?? APIService.shared
     }
 
-    func fetchWallpapers(categoryId: Int) async {
+    func fetchWallpapers(categoryId: Int, categoryName: String) async {
         guard !isLoading else { return }
 
         activeCategoryId = categoryId
+        activeCategoryName = categoryName
         wallpapers = []
         currentPage = 1
         hasMore = true
@@ -56,15 +56,17 @@ final class CategoryDetailViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
+        let wpCategory = WallpaperCategory(id: categoryId, name: activeCategoryName)
+
         do {
             let response = try await apiService.fetchWallpapers(categoryId: categoryId, page: page)
+            let tagged = response.data.map { $0.with(category: wpCategory) }
 
             if isInitialPage {
-                wallpapers = response.data
+                wallpapers = tagged
             } else {
                 let existingIDs = Set(wallpapers.map(\.id))
-                let newItems = response.data.filter { !existingIDs.contains($0.id) }
-                wallpapers.append(contentsOf: newItems)
+                wallpapers.append(contentsOf: tagged.filter { !existingIDs.contains($0.id) })
             }
 
             hasMore = response.meta.current_page < response.meta.last_page

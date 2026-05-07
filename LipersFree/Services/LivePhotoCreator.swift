@@ -125,6 +125,22 @@ final class LivePhotoCreator {
         let naturalSize      = (try? await videoTrack.load(.naturalSize))        ?? CGSize(width: 1920, height: 1080)
         let preferredTransform = (try? await videoTrack.load(.preferredTransform)) ?? .identity
         let nominalFPS       = (try? await videoTrack.load(.nominalFrameRate))    ?? 30
+        let assetDuration    = (try? await asset.load(.duration)) ?? CMTime(seconds: 60, preferredTimescale: 600)
+
+        // Build a video-only composition so the exported Live Photo has no audio.
+        let composition = AVMutableComposition()
+        guard let compVideoTrack = composition.addMutableTrack(
+            withMediaType: .video,
+            preferredTrackID: kCMPersistentTrackID_Invalid
+        ) else { throw LivePhotoCreatorError.videoExportFailed }
+
+        let sourceRange = trimRange ?? CMTimeRange(start: .zero, duration: assetDuration)
+        do {
+            try compVideoTrack.insertTimeRange(sourceRange, of: videoTrack, at: .zero)
+        } catch {
+            throw LivePhotoCreatorError.videoExportFailed
+        }
+        compVideoTrack.preferredTransform = preferredTransform
 
         // Effective display size after applying orientation transform
         let effectiveRect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
@@ -132,9 +148,10 @@ final class LivePhotoCreator {
         let nativeRatio   = effectiveSize.width / max(effectiveSize.height, 1)
         let needsCrop     = abs(nativeRatio - ratio.ratio) > 0.05
 
-        // Use passthrough when no crop is needed; re-encode when crop is required
-        let preset = needsCrop ? AVAssetExportPresetHighestQuality : AVAssetExportPresetPassthrough
-        guard let session = AVAssetExportSession(asset: asset, presetName: preset) else {
+        // Always re-encode (never passthrough) so the video-only composition is
+        // honored and no audio leaks through from the source asset.
+        guard let session = AVAssetExportSession(asset: composition,
+                                                  presetName: AVAssetExportPresetHighestQuality) else {
             throw LivePhotoCreatorError.videoExportFailed
         }
 
@@ -149,7 +166,6 @@ final class LivePhotoCreator {
         session.outputURL      = dest
         session.outputFileType = .mov
         session.metadata       = [item]
-        if let range = trimRange { session.timeRange = range }
 
         if needsCrop {
             let renderSize = computeRenderSize(effectiveSize: effectiveSize, targetRatio: ratio.ratio)
@@ -162,11 +178,9 @@ final class LivePhotoCreator {
             videoComp.frameDuration = CMTime(value: 1, timescale: CMTimeScale(max(nominalFPS, 1)))
 
             let instruction = AVMutableVideoCompositionInstruction()
-            let assetDuration = (try? await asset.load(.duration)) ?? CMTime(seconds: 60, preferredTimescale: 600)
-            let endTime = trimRange?.end ?? assetDuration
-            instruction.timeRange = CMTimeRange(start: .zero, end: endTime)
+            instruction.timeRange = CMTimeRange(start: .zero, duration: composition.duration)
 
-            let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
+            let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: compVideoTrack)
             layer.setTransform(transform, at: .zero)
             instruction.layerInstructions = [layer]
             videoComp.instructions = [instruction]

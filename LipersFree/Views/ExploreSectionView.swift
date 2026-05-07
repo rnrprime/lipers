@@ -48,26 +48,14 @@ struct ExploreSectionView_Previews: PreviewProvider {
         ExploreSectionView(
             title: "Abstract",
             wallpapers: [
-                Wallpaper(
-                    id: 1,
-                    title: "Abstract 1",
-                    preview_image: "https://picsum.photos/400/700",
-                    file_url: "https://example.com/video.mp4",
-                    live_image_url: "https://example.com/live.jpg",
-                    live_video_url: "https://example.com/live.mov",
-                    is_premium: false,
-                    category: nil
-                ),
-                Wallpaper(
-                    id: 2,
-                    title: "Abstract 2",
-                    preview_image: "https://picsum.photos/401/700",
-                    file_url: "https://example.com/video-2.mp4",
-                    live_image_url: "https://example.com/live2.jpg",
-                    live_video_url: "https://example.com/live2.mov",
-                    is_premium: true,
-                    category: nil
-                )
+                Wallpaper(id: 1, title: "Abstract 1",
+                          preview_image: "https://picsum.photos/400/700",
+                          file_url: "https://example.com/video.mp4",
+                          is_premium: false),
+                Wallpaper(id: 2, title: "Abstract 2",
+                          preview_image: "https://picsum.photos/401/700",
+                          file_url: "https://example.com/video-2.mp4",
+                          is_premium: true)
             ],
             onSeeAll: nil
         )

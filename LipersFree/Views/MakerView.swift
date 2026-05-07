@@ -122,39 +122,91 @@ private struct MakerLandingView: View {
                 .foregroundStyle(AppThemeService.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
-                .padding(.bottom, 12)
+                .padding(.bottom, 14)
 
-            VStack(spacing: 1) {
-                stepRow(icon: "film",         color: AppThemeService.accent,      number: "1", text: "Pick a video from your library")
-                stepRow(icon: "photo",        color: .cyan,                       number: "2", text: "Choose the still key frame")
-                stepRow(icon: "livephoto",    color: .green,                      number: "3", text: "Preview and save as Live Photo")
+            VStack(spacing: 10) {
+                stepCard(
+                    number: "01",
+                    icon: "film",
+                    color: AppThemeService.accent,
+                    title: "Import Video",
+                    description: "Pick any clip from your photo library"
+                )
+                stepConnector
+                stepCard(
+                    number: "02",
+                    icon: "photo.on.rectangle",
+                    color: .cyan,
+                    title: "Pick a Key Frame",
+                    description: "Scrub through and choose your still image"
+                )
+                stepConnector
+                stepCard(
+                    number: "03",
+                    icon: "livephoto",
+                    color: .green,
+                    title: "Save as Live Photo",
+                    description: "Trim the clip, then export to Camera Roll"
+                )
             }
-            .background(AppThemeService.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .padding(.horizontal, 20)
         }
     }
 
-    private func stepRow(icon: String, color: Color, number: String, text: String) -> some View {
+    private var stepConnector: some View {
+        HStack(spacing: 6) {
+            Spacer()
+            ForEach(0..<3, id: \.self) { _ in
+                Circle()
+                    .fill(AppThemeService.textSecondary.opacity(0.35))
+                    .frame(width: 3, height: 3)
+            }
+            Spacer()
+        }
+    }
+
+    private func stepCard(number: String, icon: String, color: Color, title: String, description: String) -> some View {
         HStack(spacing: 14) {
+            // Icon block
             ZStack {
-                Circle().fill(color.opacity(0.15)).frame(width: 36, height: 36)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(color.opacity(0.12))
+                    .frame(width: 54, height: 54)
                 Image(systemName: icon)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 22, weight: .medium))
                     .foregroundStyle(color)
             }
 
-            Text(text)
-                .font(.subheadline)
-                .foregroundStyle(.white)
+            // Text block
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(AppThemeService.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             Spacer()
 
+            // Step number badge
             Text(number)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(AppThemeService.textSecondary)
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(color)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(color.opacity(0.12), in: Capsule())
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(AppThemeService.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(color.opacity(0.18), lineWidth: 1)
+                )
+        )
     }
 }
 

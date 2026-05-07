@@ -39,7 +39,10 @@ struct CategoryDetailView: View {
                     LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(viewModel.wallpapers) { wallpaper in
                             NavigationLink {
-                                WallpaperDetailView(wallpaper: wallpaper)
+                                WallpaperDetailView(
+                                    categoryId: categoryId,
+                                    wallpaperId: wallpaper.id
+                                )
                             } label: {
                                 WallpaperCardView(
                                     wallpaper: wallpaper,
@@ -71,7 +74,7 @@ struct CategoryDetailView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .task {
-            await viewModel.fetchWallpapers(categoryId: categoryId)
+            await viewModel.fetchWallpapers(categoryId: categoryId, categoryName: categoryName)
         }
     }
 }
